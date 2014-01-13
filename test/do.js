@@ -194,5 +194,16 @@ exports.donotation = {
             return sum.x === a + a + b + c;
         },
         [String, String, String]
+    ),
+    'ends with something other than return': λ.check(
+        function(a, b) {
+            var sum = $do {
+                x <- Identity.of(a)
+                y <- Identity.of(b)
+                Identity.of(x + y)
+            }
+            return sum.x == a + b;
+        },
+        [String, String]
     )
 };

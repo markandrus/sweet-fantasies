@@ -40,13 +40,34 @@
 
 */
 macro $do {
+    case {_ {$a:ident <- $do { $doBlock ... } var $($x:ident = $y:expr) (var) ... $mz:expr }} => {
+        return #{
+            function() {
+                var ma = $do { $doBlock ... }
+                return ma.chain(function($a) {
+                    $(var $x = $y;) ...
+                    return $mz;
+                });
+            }()
+        };
+    }
     case {_ {$a:ident <- $do { $doBlock ... } var $($x:ident = $y:expr) (var) ... return $b:expr }} => {
         return #{
             function() {
                 var ma = $do { $doBlock ... }
                 return ma.map(function($a) {
                     $(var $x = $y;) ...
-                    return $b
+                    return $b;
+                });
+            }()
+        };
+    }
+    case {_ {$a:ident <- $do { $doBlock ... } $mz:expr }} => {
+        return #{
+            function() {
+                var ma = $do { $doBlock ... }
+                return ma.chain(function($a) {
+                    return $mz;
                 });
             }()
         };
@@ -56,7 +77,7 @@ macro $do {
             function() {
                 var ma = $do { $doBlock ... }
                 return ma.map(function($a) {
-                    return $b
+                    return $b;
                 });
             }()
         };
@@ -79,11 +100,26 @@ macro $do {
             }()
         };
     }
+    case {_ {$a:ident <- $ma:expr var $($x:ident = $y:expr) (var) ... $mz:expr }} => {
+        return #{
+            $ma.chain(function($a) {
+                $(var $x = $y;) ...
+                return $mz;
+            });
+        };
+    }
     case {_ {$a:ident <- $ma:expr var $($x:ident = $y:expr) (var) ... return $b:expr }} => {
         return #{
             $ma.map(function($a) {
                 $(var $x = $y;) ...
                 return $b;
+            });
+        };
+    }
+    case {_ {$a:ident <- $ma:expr $mz:expr }} => {
+        return #{
+            $ma.chain(function($a) {
+                return $mz;
             });
         };
     }
@@ -109,10 +145,25 @@ macro $do {
             });
         };
     }
+    case {_ {$ma:expr var $($x:ident = $y:expr) (var) ... $mz:expr}} => {
+        return #{
+            $ma.chain(function() {
+                $(var $x = $y;) ...
+                return $mz;
+            });
+        };
+    }
     case {_ {$ma:expr var $($x:ident = $y:expr) (var) ... return $b:expr}} => {
         return #{
             $ma.map(function() {
                 $(var $x = $y;) ...
+                return $b;
+            });
+        };
+    }
+    case {_ {$ma:expr $mz:expr}} => {
+        return #{
+            $ma.chain(function() {
                 return $b;
             });
         };
@@ -124,10 +175,34 @@ macro $do {
             });
         };
     }
+    // TODO(markandrus): Check on this.
+    case {_ {$a:ident <- $ma:expr var $($x:ident = $y:expr) (var) ... if $e:expr $left:expr else $right:expr }} => {
+        return #{
+            $ma.chain(function($a) {
+                $(var $x = $y;) ...
+                if ($e) {
+                    return $left
+                } else {
+                    return $right
+                }
+            });
+        };
+    }
     case {_ {$a:ident <- $ma:expr var $($x:ident = $y:expr) (var) ... if $e:expr return $left:expr else return $right:expr }} => {
         return #{
             $ma.map(function($a) {
                 $(var $x = $y;) ...
+                if ($e) {
+                    return $left
+                } else {
+                    return $right
+                }
+            });
+        };
+    }
+    case {_ {$a:ident <- $ma:expr if $e:expr $left:expr else $right:expr }} => {
+        return #{
+            $ma.chain(function($a) {
                 if ($e) {
                     return $left
                 } else {
@@ -147,10 +222,33 @@ macro $do {
             });
         };
     }
+    case {_ { $ma:expr var $($x:ident = $y:expr) (var) ... if $e:expr $left:expr else $right:expr }} => {
+        return #{
+            $ma.chain(function() {
+                $(var $x = $y;) ...
+                if ($e) {
+                    return $left
+                } else {
+                    return $right
+                }
+            });
+        };
+    }
     case {_ { $ma:expr var $($x:ident = $y:expr) (var) ... if $e:expr return $left:expr else return $right:expr }} => {
         return #{
             $ma.map(function() {
                 $(var $x = $y;) ...
+                if ($e) {
+                    return $left
+                } else {
+                    return $right
+                }
+            });
+        };
+    }
+    case {_ {$ma:expr if $e:expr $left:expr else $right:expr }} => {
+        return #{
+            $ma.chain(function() {
                 if ($e) {
                     return $left
                 } else {
